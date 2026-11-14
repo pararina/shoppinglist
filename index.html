@@ -15,7 +15,7 @@
 
   <!-- ★ここにGASで発行したウェブアプリのURLを貼り付けます★ -->
   <script>
-    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyi2Y7vzvW5ldQm-C8F78Mcxsn0W95HgsNWbOGQfRm1jcEJ4GAKWV0ZF3AJ4kNsIVjfew/exec';
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/XXXXX/exec';
   </script>
 
   <!-- ヘッダー＆ナビゲーション -->
@@ -222,4 +222,245 @@
         div.innerHTML = `
           <div>
             <p class="font-bold text-sm">${item.name} <span class="text-xs font-normal text-gray-500 bg-gray-100 px-1 rounded ml-1">${item.user}</span></p>
-            <p class="text-xs text-gray-5
+            <p class="text-xs text-gray-500 mt-1">📍${item.place || '未定'} / 📅 ${dateStr}</p>
+          </div>
+          <button onclick="openArchiveModal(${item.row}, '${item.name}', '${item.place}', '${item.user}')" class="bg-gray-100 hover:bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold border border-gray-200">
+            ✔ 買った
+          </button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function updateSuggestsAndSelects() {
+      // 過去の商品名一覧を重複排除して取得
+      const names = [...new Set(historyData.map(h => h.name))].filter(n => n);
+      
+      // datalistの更新（サジェスト用）
+      const dl = document.getElementById('suggest-items');
+      dl.innerHTML = '';
+      names.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        dl.appendChild(opt);
+      });
+
+      // ダッシュボードのプルダウン更新
+      const select = document.getElementById('chart-item-select');
+      select.innerHTML = '<option value="">商品を選択してください</option>';
+      names.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.innerText = name;
+        select.appendChild(opt);
+      });
+    }
+
+    // --- ダッシュボード（アラート＆グラフ） ---
+    function checkAlertTiming() {
+      const lastClosed = localStorage.getItem('alertClosedAt');
+      const now = new Date().getTime();
+      if (lastClosed && (now - lastClosed) < (6 * 60 * 60 * 1000)) return;
+
+      const urgentItems = shoppingList.filter(item => {
+        if(!item.date) return false;
+        const diff = Math.ceil((new Date(item.date) - new Date()) / (1000 * 60 * 60 * 24));
+        return diff >= 0 && diff <= 3;
+      });
+
+      if (urgentItems.length > 0) {
+        document.getElementById('alert-text').innerText = `${urgentItems.length}件の購入期限が3日以内に迫っています！`;
+        document.getElementById('alert-banner').classList.remove('hidden');
+      }
+    }
+    function closeAlert() {
+      localStorage.setItem('alertClosedAt', new Date().getTime());
+      document.getElementById('alert-banner').classList.add('hidden');
+    }
+
+    function renderChart() {
+      const selectedName = document.getElementById('chart-item-select').value;
+      if (!selectedName) return;
+
+      const filtered = historyData.filter(h => h.name === selectedName).sort((a,b) => new Date(a.date) - new Date(b.date));
+      
+      const labels = filtered.map(h => `${h.date.substring(5)} (${h.place})`);
+      const data = filtered.map(h => h.price);
+
+      const ctx = document.getElementById('priceChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: `${selectedName} の価格推移（税込）`,
+            data: data,
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.1,
+            fill: true
+          }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    // --- モーダル操作 ---
+    function openAddModal() { 
+      document.getElementById('input-name').value = '';
+      document.getElementById('input-place').value = '';
+      document.getElementById('input-date').value = '';
+      document.getElementById('modal-add').classList.remove('hidden'); 
+    }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    // --- 追加処理 ---
+    async function saveItem() {
+      const payload = {
+        name: document.getElementById('input-name').value,
+        place: document.getElementById('input-place').value,
+        date: document.getElementById('input-date').value,
+        user: document.getElementById('input-user').value
+      };
+      if (!payload.name) return alert('商品名を入力してください');
+
+      closeModal('modal-add');
+      showLoading('追加しています...');
+      await fetchAPI('addItem', payload);
+      await loadData(); // 再読み込み
+    }
+
+    // --- 単体アーカイブ処理 ---
+    function openArchiveModal(row, name, place, user) {
+      archiveTarget = { row, name, place, user };
+      document.getElementById('archive-item-name').innerText = name;
+      document.getElementById('archive-price').value = '';
+      
+      // 過去最安値の計算
+      const pastItems = historyData.filter(h => h.name === name);
+      if (pastItems.length > 0) {
+        const cheapest = pastItems.reduce((prev, curr) => (prev.price < curr.price) ? prev : curr);
+        document.getElementById('archive-cheapest').innerText = `過去最安値: ${cheapest.price}円 (${cheapest.place} / ${cheapest.date})`;
+      } else {
+        document.getElementById('archive-cheapest').innerText = `過去最安値: データなし (初購入)`;
+      }
+
+      document.getElementById('modal-archive').classList.remove('hidden');
+    }
+
+    async function executeArchive() {
+      const price = document.getElementById('archive-price').value;
+      if (!price) return alert('金額を入力してください');
+
+      archiveTarget.price = price;
+      archiveTarget.taxType = document.getElementById('archive-tax-type').value;
+      archiveTarget.taxRate = document.getElementById('archive-tax-rate').value;
+      archiveTarget.archiveDate = document.getElementById('archive-date').value;
+
+      closeModal('modal-archive');
+      showLoading('アーカイブしています...');
+      await fetchAPI('archiveItem', archiveTarget);
+      await loadData();
+    }
+
+    // --- レシート画像読み取り＆マッチング機能 ---
+    function handleReceiptUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      showLoading('AIがレシートを解析しています...');
+      
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64Image = e.target.result;
+        try {
+          const res = await fetchAPI('analyzeReceipt', { base64Image: base64Image });
+          if(res.success) {
+            receiptExtractedData = res.data;
+            renderReceiptMatchUI();
+          } else {
+            alert("解析エラー: " + res.error);
+          }
+        } catch (error) {
+          alert("通信エラー: " + error);
+        }
+        hideLoading();
+        // 連続で同じファイルをアップロードできるようにクリア
+        event.target.value = ''; 
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderReceiptMatchUI() {
+      const container = document.getElementById('receipt-match-list');
+      container.innerHTML = '';
+      
+      if(receiptExtractedData.length === 0) {
+        container.innerHTML = '<p class="text-sm text-red-500">商品が読み取れませんでした。</p>';
+      } else {
+        receiptExtractedData.forEach((item, index) => {
+          // リスト候補のHTML生成
+          let optionsHtml = '<option value="">(リストと紐付けない)</option>';
+          shoppingList.forEach(sItem => {
+            optionsHtml += `<option value="${sItem.row}">${sItem.name}</option>`;
+          });
+
+          const div = document.createElement('div');
+          div.className = 'bg-gray-50 p-3 rounded border text-sm';
+          div.innerHTML = `
+            <div class="flex justify-between font-bold mb-2">
+              <span>${item.name}</span>
+              <span>${item.price}円</span>
+            </div>
+            <select id="receipt-match-${index}" class="w-full border rounded p-2 text-xs">
+              ${optionsHtml}
+            </select>
+          `;
+          container.appendChild(div);
+        });
+      }
+      
+      document.getElementById('modal-receipt-match').classList.remove('hidden');
+    }
+
+    async function executeReceiptArchive() {
+      closeModal('modal-receipt-match');
+      showLoading('一括記録しています...');
+
+      let promises = [];
+      const today = new Date().toISOString().split('T')[0];
+
+      receiptExtractedData.forEach((item, index) => {
+        const selectedRow = document.getElementById(`receipt-match-${index}`).value;
+        if (selectedRow) {
+          // 該当するshoppingListのアイテムを探す
+          const targetListItem = shoppingList.find(s => s.row == selectedRow);
+          if (targetListItem) {
+            promises.push(fetchAPI('archiveItem', {
+              row: targetListItem.row,
+              name: targetListItem.name,
+              place: targetListItem.place, // リストに登録されていた場所を引き継ぐ
+              user: targetListItem.user,
+              price: item.price,
+              taxType: 'in', // レシート抽出は基本的に税込想定
+              taxRate: '1.10',
+              archiveDate: today
+            }));
+          }
+        }
+      });
+
+      if (promises.length > 0) {
+        await Promise.all(promises);
+        await loadData();
+      } else {
+        alert('紐付けされたアイテムがありませんでした。');
+        hideLoading();
+      }
+    }
+
+  </script>
+</body>
+</html>
