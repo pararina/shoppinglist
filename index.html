@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>お買い物リスト</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .loader { border-top-color: #3498db; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
+    @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+  <!-- ★ここにGASで発行したウェブアプリのURLを貼り付けます★ -->
+  <script>
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyi2Y7vzvW5ldQm-C8F78Mcxsn0W95HgsNWbOGQfRm1jcEJ4GAKWV0ZF3AJ4kNsIVjfew/exec';
+  </script>
+
+  <!-- ヘッダー＆ナビゲーション -->
+  <header class="bg-white shadow-sm sticky top-0 z-10">
+    <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+      <h1 class="font-bold text-lg text-blue-600">お買い物リスト</h1>
+      <div class="flex space-x-2 text-sm">
+        <button onclick="switchTab('list')" id="tab-list" class="font-bold text-blue-600 border-b-2 border-blue-600 pb-1">リスト</button>
+        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="text-gray-500 pb-1">ダッシュボード</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- アラートバナー -->
+  <div id="alert-banner" class="hidden max-w-md mx-auto mt-2 px-4">
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-sm shadow">
+      <strong>期限間近！</strong> <span id="alert-text">3日以内に購入予定のアイテムがあります。</span>
+      <button onclick="closeAlert()" class="absolute top-0 bottom-0 right-0 px-4 py-3 text-red-700 font-bold">×</button>
+    </div>
+  </div>
+
+  <main class="max-w-md mx-auto p-4">
+    
+    <!-- ▼ タブ1：お買い物リスト ▼ -->
+    <div id="view-list" class="block">
+      <div class="flex space-x-2 mb-4">
+        <button onclick="openAddModal()" class="flex-1 bg-blue-600 text-white py-2 rounded shadow text-sm font-bold">＋ アイテム追加</button>
+        <label class="flex-1 bg-green-600 text-white py-2 rounded shadow text-sm font-bold text-center cursor-pointer flex items-center justify-center">
+          📷 レシート読取
+          <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleReceiptUpload(event)">
+        </label>
+      </div>
+
+      <div id="shopping-items" class="space-y-3">
+        <p class="text-center text-gray-500 text-sm py-4">読み込み中...</p>
+      </div>
+    </div>
+
+    <!-- ▼ タブ2：ダッシュボード ▼ -->
+    <div id="view-dashboard" class="hidden">
+      <div class="bg-white p-4 rounded shadow mb-4">
+        <h2 class="font-bold text-gray-700 mb-2 text-sm">価格推移（最安値チェック）</h2>
+        <select id="chart-item-select" class="w-full border rounded p-2 text-sm mb-4" onchange="renderChart()">
+          <option value="">商品を選択してください</option>
+        </select>
+        <canvas id="priceChart" width="400" height="250"></canvas>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ▼ モーダル：手入力追加 ▼ -->
+  <div id="modal-add" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+    <div class="bg-white w-full max-w-sm rounded-lg shadow-lg p-5">
+      <h3 class="font-bold mb-4">アイテムを追加</h3>
+      <div class="space-y-3 text-sm">
+        <input type="text" id="input-name" placeholder="商品名" class="w-full border rounded p-2" list="suggest-items">
+        <datalist id="suggest-items"></datalist>
+        <input type="text" id="input-place" placeholder="購入予定の場所" class="w-full border rounded p-2">
+        <input type="date" id="input-date" class="w-full border rounded p-2">
+        <select id="input-user" class="w-full border rounded p-2">
+          <option value="ぱら">ぱら</option>
+          <option value="りな">りな</option>
+        </select>
+      </div>
+      <div class="flex justify-end mt-5 space-x-2">
+        <button onclick="closeModal('modal-add')" class="px-4 py-2 bg-gray-200 rounded text-sm">キャンセル</button>
+        <button onclick="saveItem()" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-bold">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ▼ モーダル：アーカイブ（手動記録） ▼ -->
+  <div id="modal-archive" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+    <div class="bg-white w-full max-w-sm rounded-lg shadow-lg p-5">
+      <h3 class="font-bold mb-2">購入記録</h3>
+      <p id="archive-item-name" class="font-bold text-gray-700 mb-1"></p>
+      <p id="archive-cheapest" class="text-xs text-red-600 mb-3 font-bold">過去最安値: 計算中...</p>
+      
+      <div class="space-y-3 text-sm">
+        <input type="number" id="archive-price" placeholder="購入金額（数字のみ）" class="w-full border rounded p-2">
+        <div class="flex space-x-2">
+          <select id="archive-tax-type" class="w-1/2 border rounded p-2">
+            <option value="in">税込</option>
+            <option value="out">税別</option>
+          </select>
+          <select id="archive-tax-rate" class="w-1/2 border rounded p-2">
+            <option value="1.08">8%（軽減）</option>
+            <option value="1.10">10%</option>
+          </select>
+        </div>
+        <input type="date" id="archive-date" class="w-full border rounded p-2">
+      </div>
+      <div class="flex justify-end mt-5 space-x-2">
+        <button onclick="closeModal('modal-archive')" class="px-4 py-2 bg-gray-200 rounded text-sm">キャンセル</button>
+        <button onclick="executeArchive()" class="px-4 py-2 bg-green-600 text-white rounded text-sm font-bold">記録してアーカイブ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ▼ モーダル：レシートマッチング確認 ▼ -->
+  <div id="modal-receipt-match" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+    <div class="bg-white w-full max-w-md rounded-lg shadow-lg p-5 max-h-[80vh] overflow-y-auto">
+      <h3 class="font-bold mb-4 text-green-700">レシート読み取り結果</h3>
+      <p class="text-xs text-gray-500 mb-4">リストのどの商品に該当するか選択してください。</p>
+      
+      <div id="receipt-match-list" class="space-y-4">
+        <!-- JSで描画 -->
+      </div>
+      
+      <div class="flex justify-end mt-5 space-x-2 border-t pt-4">
+        <button onclick="closeModal('modal-receipt-match')" class="px-4 py-2 bg-gray-200 rounded text-sm">キャンセル</button>
+        <button onclick="executeReceiptArchive()" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-bold">選択したものを一括記録</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- フルスクリーンローディング -->
+  <div id="loading-overlay" class="hidden fixed inset-0 bg-white bg-opacity-80 flex flex-col items-center justify-center z-50">
+    <div class="loader ease-linear rounded-full border-4 border-t-4 border-blue-500 h-12 w-12 mb-4"></div>
+    <p id="loading-text" class="text-gray-600 font-bold text-sm">処理中...</p>
+  </div>
+
+  <script>
+    // --- グローバル状態管理 ---
+    let shoppingList = [];
+    let historyData = [];
+    let archiveTarget = null; // 手動アーカイブ時の対象
+    let receiptExtractedData = []; // レシートから抽出されたデータ
+    let chartInstance = null; // Chart.jsのインスタンス
+
+    // --- API通信ラッパー ---
+    async function fetchAPI(action, payload = {}) {
+      const response = await fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/plain' }, // CORS回避のため plain
+        body: JSON.stringify({ action: action, payload: payload })
+      });
+      return await response.json();
+    }
+
+    function showLoading(text = '処理中...') {
+      document.getElementById('loading-text').innerText = text;
+      document.getElementById('loading-overlay').classList.remove('hidden');
+    }
+    function hideLoading() {
+      document.getElementById('loading-overlay').classList.add('hidden');
+    }
+
+    // --- 初期化 ---
+    window.onload = async () => {
+      document.getElementById('archive-date').valueAsDate = new Date();
+      await loadData();
+    };
+
+    async function loadData() {
+      showLoading('データを読み込んでいます...');
+      try {
+        const listRes = await fetchAPI('getShoppingList');
+        const histRes = await fetchAPI('getHistoryData');
+        
+        shoppingList = listRes.data || [];
+        historyData = histRes.data || [];
+        
+        renderList();
+        updateSuggestsAndSelects();
+        checkAlertTiming();
+      } catch (error) {
+        alert('データ取得エラー: ' + error);
+      }
+      hideLoading();
+    }
+
+    // --- 描画系 ---
+    function switchTab(tab) {
+      document.getElementById('view-list').classList.toggle('hidden', tab !== 'list');
+      document.getElementById('view-dashboard').classList.toggle('hidden', tab !== 'dashboard');
+      document.getElementById('tab-list').className = tab === 'list' ? "font-bold text-blue-600 border-b-2 border-blue-600 pb-1" : "text-gray-500 pb-1";
+      document.getElementById('tab-dashboard').className = tab === 'dashboard' ? "font-bold text-blue-600 border-b-2 border-blue-600 pb-1" : "text-gray-500 pb-1";
+      
+      if(tab === 'dashboard' && historyData.length > 0) renderChart();
+    }
+
+    function renderList() {
+      const container = document.getElementById('shopping-items');
+      container.innerHTML = '';
+      if (shoppingList.length === 0) {
+        container.innerHTML = '<p class="text-center text-gray-500 text-sm py-4">現在リストは空です</p>';
+        return;
+      }
+
+      shoppingList.forEach(item => {
+        // 期限の計算表示
+        let dateStr = '期限なし';
+        let isUrgent = false;
+        if (item.date) {
+          const diffDays = Math.ceil((new Date(item.date) - new Date()) / (1000 * 60 * 60 * 24));
+          dateStr = diffDays < 0 ? '期限切れ' : (diffDays === 0 ? '今日まで' : `あと${diffDays}日`);
+          if (diffDays >= 0 && diffDays <= 3) isUrgent = true;
+        }
+
+        const div = document.createElement('div');
+        div.className = `bg-white p-3 rounded shadow flex justify-between items-center ${isUrgent ? 'border-l-4 border-red-500' : ''}`;
+        div.innerHTML = `
+          <div>
+            <p class="font-bold text-sm">${item.name} <span class="text-xs font-normal text-gray-500 bg-gray-100 px-1 rounded ml-1">${item.user}</span></p>
+            <p class="text-xs text-gray-5
