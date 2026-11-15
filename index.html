@@ -81,25 +81,21 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
 @keyframes pulse{0%,100%{opacity:.35}50%{opacity:.9}}
 
 /* 価格タブ */
-.unit-note{font-size:12px;color:var(--muted);margin:10px 0 14px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:8px}
-.stat{padding:14px 4px;text-align:center}
+.unit-note{font-size:12px;color:var(--muted);margin:10px 0 12px;line-height:1.7}
+.p-search{width:100%;min-height:42px;border:0;border-bottom:1px solid var(--line);background:transparent;padding:9px 0;font-size:16px;border-radius:0;outline:none;color:var(--ink);-webkit-appearance:none;appearance:none}
+.p-search:focus{border-bottom-color:var(--accent)}
+.p-card{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:16px 16px 10px;margin-top:14px}
+.p-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.p-name{font-family:var(--serif);font-weight:600;font-size:16.5px;letter-spacing:.03em;line-height:1.4}
+.p-unit{font-size:11px;color:var(--muted);white-space:nowrap}
+.p-stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:12px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stat{padding:10px 2px;text-align:center}
 .stat+.stat{border-left:1px solid var(--line)}
 .stat .k{font-size:11px;color:var(--muted);letter-spacing:.06em}
-.stat .v{font-family:var(--serif);font-size:20px;font-weight:600;margin-top:2px;white-space:nowrap}
-.stat .v small{font-family:var(--sans);font-size:10.5px;font-weight:400;color:var(--muted);margin-left:1px}
-.select{width:100%;appearance:none;-webkit-appearance:none;background-color:transparent;border:0;border-bottom:1px solid var(--line);
-  padding:10px 24px 10px 0;font-size:16px;border-radius:0;outline:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%237B817C' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 2px center}
-.chart-wrap{position:relative;height:240px;margin:18px 0 8px}
-.h-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
-.h-row .sub{display:block;font-size:12px;color:var(--muted)}
-.h-row .date{display:block;font-size:14px;color:var(--ink)}
-.h-row .price{font-family:var(--serif);font-weight:600;font-size:16px;white-space:nowrap;text-align:right}
-.h-row.off{opacity:.55}
-.h-row.off .price{font-family:var(--sans);font-weight:400;font-size:13px}
-.badge{font-family:var(--sans);font-size:10px;font-weight:500;background:var(--accent-soft);color:var(--accent);padding:1px 8px;border-radius:999px;margin-right:8px;vertical-align:2px}
+.stat .v{font-family:var(--serif);font-size:18px;font-weight:600;margin-top:1px;white-space:nowrap}
+.stat .v small{font-family:var(--sans);font-size:10px;font-weight:400;color:var(--muted);margin-left:1px}
+.p-chart{position:relative;height:150px;margin-top:12px}
+.p-foot{font-size:12px;color:var(--muted);padding:8px 0 4px;line-height:1.6}
 
 /* タブバー */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(247,244,238,.92);
@@ -184,7 +180,8 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
 .menu-row.armed{background:var(--clay);color:#fff;border-radius:12px;padding-left:14px;border-bottom-color:transparent}
 .menu-row.armed svg{color:#fff}
 
-.r-row{padding:14px 0;border-bottom:1px solid var(--line)}
+.r-row{padding:14px;border:1px dashed #D5D0C5;border-radius:14px;margin-bottom:12px;transition:.15s}
+.r-row.on{border:1px solid var(--accent);background:var(--accent-soft)}
 .r-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}
 .r-name{font-size:14px;font-weight:500}
 .r-price{display:flex;align-items:baseline;gap:2px;color:var(--muted)}
@@ -249,16 +246,10 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
     <!-- 価格 -->
     <section id="view-dash" hidden>
       <div id="dash-body">
-        <div class="section-head" style="margin-top:4px"><h2>単価の推移</h2></div>
-        <select id="chart-select" class="select" aria-label="商品を選ぶ"></select>
-        <p class="unit-note" id="unit-note"></p>
-        <div class="stats">
-          <div class="stat"><p class="k">最安</p><p class="v tnum" id="stat-min"></p></div>
-          <div class="stat"><p class="k">直近</p><p class="v tnum" id="stat-last"></p></div>
-          <div class="stat"><p class="k">平均</p><p class="v tnum" id="stat-avg"></p></div>
-        </div>
-        <div class="chart-wrap"><canvas id="priceChart"></canvas></div>
-        <div id="history-rows"></div>
+        <div class="section-head" style="margin-top:4px"><h2>商品ごとの価格推移</h2><span id="dash-count"></span></div>
+        <p class="unit-note">これまでの全期間を、単価（1個／100g／100mlあたり）で比べています。</p>
+        <input type="text" id="dash-search" class="p-search" placeholder="商品名で絞り込む" autocomplete="off">
+        <div id="product-cards"></div>
       </div>
       <div id="dash-empty" class="state" hidden>
         <h3>まだ記録がありません</h3>
@@ -400,8 +391,9 @@ let editingId = null;
 let menuTargetId = null;
 let formUser = USERS[0].name;
 let receiptRows = [];
-let chartInstance = null;
-let selectedChartKey = '';
+let charts = [];
+let dashQuery = '';
+let dashObserver = null;
 let lastLoadedAt = 0;
 let currentTab = 'list';
 let placeFilter = 'all';
@@ -883,89 +875,116 @@ function groupHistory() {
   });
   return map;
 }
-function renderDashboard() {
-  const groups = groupHistory();
-  const list = [...groups.values()].sort((a, b) => (b.entries[b.entries.length - 1].date || '').localeCompare(a.entries[a.entries.length - 1].date || ''));
-  $('dash-body').hidden = !list.length;
-  $('dash-empty').hidden = !!list.length;
-  if (!list.length) { if (chartInstance) { chartInstance.destroy(); chartInstance = null; } return; }
-  if (!groups.has(selectedChartKey)) selectedChartKey = list[0].key;
-  $('chart-select').innerHTML = list.map(g => `<option value="${esc(g.key)}">${esc(g.name)}</option>`).join('');
-  $('chart-select').value = selectedChartKey;
-  renderChart(groups.get(selectedChartKey));
+function destroyCharts() {
+  if (dashObserver) { dashObserver.disconnect(); dashObserver = null; }
+  charts.forEach(c => { try { c.destroy(); } catch { /* 既に破棄済み */ } });
+  charts = [];
 }
-function renderChart(group) {
+// 商品ごとの全期間の集計（単位が同じ記録だけを、単価にそろえて比べる）
+function productSummary(group) {
   const unit = unitOfProduct(group.name);
   const comparable = group.entries.filter(e => e.unit === unit);
   const ups = comparable.map(unitPrice);
   let minIdx = -1;
   ups.forEach((u, i) => { if (minIdx < 0 || u < ups[minIdx]) minIdx = i; });
+  const lastE = comparable.length ? latestEntry(comparable) : null;
+  return {
+    unit, comparable, ups, minIdx,
+    lastUp: lastE ? unitPrice(lastE) : 0,
+    avg: ups.length ? ups.reduce((s, v) => s + v, 0) / ups.length : 0,
+    excluded: group.entries.length - comparable.length
+  };
+}
+function renderDashboard() {
+  destroyCharts();
+  const groups = groupHistory();
+  const list = [...groups.values()].sort((a, b) =>
+    (b.entries[b.entries.length - 1].date || '').localeCompare(a.entries[a.entries.length - 1].date || ''));
+  $('dash-body').hidden = !list.length;
+  $('dash-empty').hidden = !!list.length;
+  if (!list.length) return;
 
-  $('unit-note').textContent = `単価は「${perText(unit)}」で比べています。` +
-    (comparable.length < group.entries.length ? `単位が違う記録 ${group.entries.length - comparable.length} 件は、推移に含めていません。` : '');
-  const small = `<small>${perLabel(unit)}</small>`;
-  if (comparable.length) {
-    const lastE = latestEntry(comparable);
-    const avg = ups.reduce((s, v) => s + v, 0) / ups.length;
-    $('stat-min').innerHTML = fmtUP(ups[minIdx]) + small;
-    $('stat-last').innerHTML = fmtUP(unitPrice(lastE)) + small;
-    $('stat-avg').innerHTML = fmtUP(avg) + small;
-  } else {
-    ['stat-min', 'stat-last', 'stat-avg'].forEach(id => { $(id).textContent = '―'; });
-  }
+  const q = norm(dashQuery);
+  const shown = q ? list.filter(g => norm(g.name).includes(q)) : list;
+  $('dash-count').textContent = `${shown.length} 品目`;
+  const box = $('product-cards');
+  if (!shown.length) { box.innerHTML = '<p class="muted" style="padding:28px 0;text-align:center">該当する商品がありません</p>'; return; }
 
-  if (typeof Chart !== 'undefined') {
-    Chart.defaults.font.family = "'Noto Sans JP', sans-serif";
-    Chart.defaults.color = '#7B817C';
-    if (chartInstance) chartInstance.destroy();
-    chartInstance = new Chart($('priceChart').getContext('2d'), {
-      type: 'line',
-      data: {
-        labels: comparable.map(e => fmtDate(e.date)),
-        datasets: [{
-          data: ups.map(u => Math.round(u * 10) / 10),
-          borderColor: '#2E4B3F', borderWidth: 2, tension: 0.25, fill: true,
-          backgroundColor: 'rgba(46,75,63,0.07)',
-          pointRadius: 4, pointHoverRadius: 6,
-          pointBackgroundColor: comparable.map((e, i) => (i === minIdx ? '#A5694C' : '#2E4B3F')),
-          pointBorderColor: '#F7F4EE', pointBorderWidth: 2
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#1E2420', padding: 10, displayColors: false, cornerRadius: 8,
-            callbacks: {
-              title: items => comparable[items[0].dataIndex].date,
-              label: ctx => fmtUP(ctx.parsed.y) + perLabel(unit),
-              afterLabel: ctx => {
-                const e = comparable[ctx.dataIndex];
-                return [e.place || '', `${yen(e.price)} ／ ${fmtQty(e.qty)}${e.unit}`].filter(Boolean);
-              }
+  const sums = shown.map(productSummary);
+  box.innerHTML = shown.map((g, i) => {
+    const s = sums[i];
+    const head = `<div class="p-head"><h3 class="p-name">${esc(g.name)}</h3><span class="p-unit">${perText(s.unit)}</span></div>`;
+    if (!s.comparable.length) {
+      return `<article class="p-card">${head}<p class="p-foot">比べられる記録がありません（単位が違う記録のみ）</p></article>`;
+    }
+    const small = `<small>${perLabel(s.unit)}</small>`;
+    const minE = s.comparable[s.minIdx];
+    const foot = [
+      minE.place ? `最安は${esc(minE.place)}` : '',
+      `${s.comparable.length}回の記録`,
+      s.excluded ? `単位が違う${s.excluded}件は含めていません` : ''
+    ].filter(Boolean).join(' ・ ');
+    return `<article class="p-card" data-i="${i}">${head}
+      <div class="p-stats">
+        <div class="stat"><p class="k">最安</p><p class="v tnum">${fmtUP(s.ups[s.minIdx])}${small}</p></div>
+        <div class="stat"><p class="k">直近</p><p class="v tnum">${fmtUP(s.lastUp)}${small}</p></div>
+        <div class="stat"><p class="k">平均</p><p class="v tnum">${fmtUP(s.avg)}${small}</p></div>
+      </div>
+      <div class="p-chart"><canvas></canvas></div>
+      <p class="p-foot">${foot}</p></article>`;
+  }).join('');
+
+  // グラフは画面に近づいたカードから描く（品目が増えても軽く動く）
+  const cards = [...box.querySelectorAll('.p-card[data-i]')];
+  const draw = card => drawProductChart(card.querySelector('canvas'), sums[card.dataset.i]);
+  if ('IntersectionObserver' in window) {
+    dashObserver = new IntersectionObserver((items, obs) => {
+      items.forEach(it => { if (it.isIntersecting) { obs.unobserve(it.target); draw(it.target); } });
+    }, { rootMargin: '300px' });
+    cards.forEach(c => dashObserver.observe(c));
+  } else cards.forEach(draw);
+}
+// 日付は、この折れ線グラフの中（横軸とツールチップ）にだけ出す
+function drawProductChart(canvas, s) {
+  if (typeof Chart === 'undefined' || !canvas) return;
+  Chart.defaults.font.family = "'Noto Sans JP', sans-serif";
+  Chart.defaults.color = '#7B817C';
+  const entries = s.comparable;
+  charts.push(new Chart(canvas.getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: entries.map(e => fmtDate(e.date)),
+      datasets: [{
+        data: s.ups.map(u => Math.round(u * 10) / 10),
+        borderColor: '#2E4B3F', borderWidth: 2, tension: 0.25, fill: true,
+        backgroundColor: 'rgba(46,75,63,0.07)',
+        pointRadius: 3.5, pointHoverRadius: 6,
+        pointBackgroundColor: entries.map((e, i) => (i === s.minIdx ? '#A5694C' : '#2E4B3F')),
+        pointBorderColor: '#FFFDFA', pointBorderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1E2420', padding: 10, displayColors: false, cornerRadius: 8,
+          callbacks: {
+            title: items => entries[items[0].dataIndex].date,
+            label: ctx => fmtUP(ctx.parsed.y) + perLabel(s.unit),
+            afterLabel: ctx => {
+              const e = entries[ctx.dataIndex];
+              return [e.place || '', `${yen(e.price)} ／ ${fmtQty(e.qty)}${e.unit}`].filter(Boolean);
             }
           }
-        },
-        scales: {
-          x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11 } } },
-          y: { grace: '15%', grid: { color: '#E7E2D9' }, border: { display: false }, ticks: { font: { size: 11 }, callback: v => '¥' + v } }
         }
+      },
+      scales: {
+        x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 6 } },
+        y: { grace: '15%', grid: { color: '#E7E2D9' }, border: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 4, callback: v => '¥' + v } }
       }
-    });
-  }
-
-  $('history-rows').innerHTML = [...group.entries].reverse().map(e => {
-    const comparableRow = e.unit === unit;
-    const detail = `${esc(e.place || '場所の記録なし')} ・ ${yen(e.price)} ／ ${esc(fmtQty(e.qty))}${esc(e.unit)}`;
-    if (!comparableRow) {
-      return `<div class="h-row off"><div><span class="date">${esc(fmtDate(e.date))}</span><span class="sub">${detail}</span></div>
-        <div class="price tnum">単位が違うため対象外</div></div>`;
     }
-    const isMin = comparable.indexOf(e) === minIdx;
-    return `<div class="h-row"><div><span class="date">${esc(fmtDate(e.date))}</span><span class="sub">${detail}</span></div>
-      <div class="price tnum">${isMin ? '<span class="badge">最安</span>' : ''}${fmtUP(unitPrice(e))}<span class="sub" style="display:inline;margin-left:1px">${perLabel(unit)}</span></div></div>`;
-  }).join('');
+  }));
 }
 
 // ---------- レシート読み取り ----------
@@ -1058,6 +1077,8 @@ function receiptProductName(i) {
 // 記録のしかたに合わせて、名前欄・数量・単位の初期値を入れる
 function syncReceiptRow(i, reset, forcedUnit) {
   const v = $(`r-match-${i}`).value;
+  const rowEl = $(`r-match-${i}`).closest('.r-row');
+  if (rowEl) rowEl.classList.toggle('on', !!v); // 記録する行は、枠と背景で目立たせる
   $(`r-new-wrap-${i}`).hidden = v !== RECEIPT_NEW;
   const wrap = $(`r-qty-wrap-${i}`);
   if (!v) { wrap.hidden = true; return; }
@@ -1221,11 +1242,7 @@ function init() {
     if (e.target.id.startsWith('r-price-') || e.target.id.startsWith('r-qty-')) updateReceiptUnitPrice(Number(i));
   });
 
-  $('chart-select').addEventListener('change', e => {
-    selectedChartKey = e.target.value;
-    const g = groupHistory().get(selectedChartKey);
-    if (g) renderChart(g);
-  });
+  $('dash-search').addEventListener('input', e => { dashQuery = e.target.value; renderDashboard(); });
 
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && isConfigured() && Date.now() - lastLoadedAt > 60000) loadData();
