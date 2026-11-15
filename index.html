@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F7F4EE">
+<title>お買い物リスト</title>
 <link rel="icon" type="image/png" href="favico_shoppinglist.png">
 <link rel="apple-touch-icon" href="favico_shoppinglist.png">
-<title>お買い物リスト</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@500;600&display=swap" rel="stylesheet">
@@ -47,7 +47,15 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
 .receipt-row .grow{flex:1}
 .receipt-row .chev{color:#B9BDB8}
 
-.section-head{display:flex;justify-content:space-between;align-items:baseline;margin:26px 0 4px}
+/* 場所フィルター */
+.chips{display:flex;gap:8px;overflow-x:auto;margin:16px -22px 0;padding:2px 22px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;display:flex;align-items:baseline;gap:6px;padding:7px 14px;border:1px solid var(--line);border-radius:999px;
+  font-size:13.5px;background:var(--surface);color:var(--muted);white-space:nowrap;transition:.15s}
+.chip em{font-style:normal;font-size:11px;opacity:.75}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.section-head{display:flex;justify-content:space-between;align-items:baseline;margin:22px 0 4px}
 .section-head h2{font-family:var(--serif);font-size:15px;font-weight:600;letter-spacing:.1em}
 .section-head span{font-size:12px;color:var(--muted)}
 
@@ -72,13 +80,14 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
 .skel{height:61px;border-bottom:1px solid var(--line);animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:.35}50%{opacity:.9}}
 
-/* dashboard */
-.dash-title{font-family:var(--serif);font-size:15px;font-weight:600;letter-spacing:.1em;margin:4px 0 12px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:28px}
-.stat{padding:16px 4px;text-align:center}
+/* 価格タブ */
+.unit-note{font-size:12px;color:var(--muted);margin:10px 0 14px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:8px}
+.stat{padding:14px 4px;text-align:center}
 .stat+.stat{border-left:1px solid var(--line)}
 .stat .k{font-size:11px;color:var(--muted);letter-spacing:.06em}
-.stat .v{font-family:var(--serif);font-size:22px;font-weight:600;margin-top:2px}
+.stat .v{font-family:var(--serif);font-size:20px;font-weight:600;margin-top:2px;white-space:nowrap}
+.stat .v small{font-family:var(--sans);font-size:10.5px;font-weight:400;color:var(--muted);margin-left:1px}
 .select{width:100%;appearance:none;-webkit-appearance:none;background-color:transparent;border:0;border-bottom:1px solid var(--line);
   padding:10px 24px 10px 0;font-size:16px;border-radius:0;outline:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%237B817C' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -86,10 +95,13 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
 .chart-wrap{position:relative;height:240px;margin:18px 0 8px}
 .h-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
 .h-row .sub{display:block;font-size:12px;color:var(--muted)}
-.h-row .price{font-family:var(--serif);font-weight:600;font-size:16px;white-space:nowrap}
+.h-row .date{display:block;font-size:14px;color:var(--ink)}
+.h-row .price{font-family:var(--serif);font-weight:600;font-size:16px;white-space:nowrap;text-align:right}
+.h-row.off{opacity:.55}
+.h-row.off .price{font-family:var(--sans);font-weight:400;font-size:13px}
 .badge{font-family:var(--sans);font-size:10px;font-weight:500;background:var(--accent-soft);color:var(--accent);padding:1px 8px;border-radius:999px;margin-right:8px;vertical-align:2px}
 
-/* tab bar */
+/* タブバー */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(247,244,238,.92);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .tabbar-in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:1fr 84px 1fr;align-items:center;height:64px}
@@ -100,7 +112,7 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
   margin-top:-18px;box-shadow:0 8px 18px rgba(46,75,63,.30)}
 .fab:active{transform:scale(.95)}
 
-/* sheets */
+/* シート */
 .sheet-wrap{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;
   visibility:hidden;transition:visibility 0s linear .3s}
 .sheet-wrap.open{visibility:visible;transition-delay:0s}
@@ -125,6 +137,25 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
 .field .price-input span{font-family:var(--serif);font-size:22px;color:var(--muted)}
 .field .price-input input{border:0;font-family:var(--serif);font-size:30px;padding:4px 0}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6}
+
+.field .qty-row{display:flex;align-items:center;gap:12px}
+.field .qty-row input{flex:1;min-width:0;width:auto}
+.field .qty-row .seg{flex:none;width:176px;margin-top:0}
+
+/* コンボボックス（プルダウン＋自由入力） */
+.combo{position:relative}
+.field .combo input[type=text]{padding-right:24px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%237B817C' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 2px center}
+.combo-list{position:absolute;left:0;right:0;top:100%;z-index:5;max-height:224px;overflow-y:auto;margin-top:4px;
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 28px rgba(30,36,32,.14)}
+.combo-opt{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:12px 14px;font-size:15px;
+  border-bottom:1px solid var(--line);cursor:pointer}
+.combo-opt:last-child{border-bottom:0}
+.combo-opt small{font-size:11px;color:var(--muted)}
+.combo-opt.new{color:var(--accent);font-weight:500;background:var(--accent-soft)}
+.combo-opt:active{background:var(--accent-soft)}
 
 .seg{display:flex;gap:4px;padding:3px;border:1px solid var(--line);border-radius:12px;background:#F4F1EA;margin-top:6px}
 .seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 6px;border-radius:9px;
@@ -134,7 +165,7 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
 
 .cheapest{background:var(--accent-soft);color:var(--accent);border-radius:12px;padding:11px 14px;font-size:13px;margin-bottom:18px;line-height:1.7}
 .cheapest strong{font-family:var(--serif);font-size:17px;margin:0 4px 0 6px}
-.preview{min-height:24px;font-size:13px;color:var(--muted);margin:-6px 0 16px}
+.preview{min-height:24px;font-size:13px;color:var(--muted);margin:-6px 0 16px;line-height:1.8}
 .preview b{font-family:var(--serif);font-size:15px;color:var(--ink);font-weight:600}
 .preview .good{color:var(--accent);font-weight:500}
 
@@ -156,12 +187,16 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
 .r-name{font-size:14px;font-weight:500}
 .r-price{display:flex;align-items:baseline;gap:2px;color:var(--muted)}
 .r-price input{width:84px;border:0;border-bottom:1px solid var(--line);text-align:right;font-size:16px;background:transparent;outline:none;padding:2px 0;border-radius:0}
-.r-row select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;background:#fff}
+.r-row>select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;background:#fff}
+.r-qty{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.r-qty input{width:76px;border:0;border-bottom:1px solid var(--line);text-align:right;font-size:16px;background:transparent;outline:none;padding:2px 0;border-radius:0;color:var(--ink)}
+.r-qty select{border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:14px;background:#fff;color:var(--ink)}
+.r-qty .r-up{margin-left:auto;color:var(--accent);font-weight:500}
 .muted{color:var(--muted);font-size:13px;line-height:1.8}
 
-/* toast / loading */
+/* トースト・ローディング */
 .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translate(-50%,12px);
-  background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;
+  background:var(--ink);color:#fff;padding:10px 18px;border-radius:18px;font-size:13px;opacity:0;pointer-events:none;
   transition:.25s;z-index:80;max-width:calc(100vw - 40px);text-align:center;line-height:1.5}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.error{background:#8A3B2A}
@@ -200,28 +235,29 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
         <input id="receipt-input" type="file" accept="image/*" hidden>
       </label>
 
-      <div class="section-head"><h2>いま買うもの</h2><span id="list-count"></span></div>
+      <div class="chips" id="chips" hidden></div>
+
+      <div class="section-head"><h2 id="list-title">いま買うもの</h2><span id="list-count"></span></div>
       <ul id="shopping-items" class="items"></ul>
     </section>
 
     <!-- 価格 -->
     <section id="view-dash" hidden>
-      <p class="dash-title" id="dash-month">今月のまとめ</p>
-      <div class="stats">
-        <div class="stat"><p class="k">記録</p><p class="v tnum"><span id="stat-count">0</span><small style="font-size:12px;margin-left:2px">件</small></p></div>
-        <div class="stat"><p class="k">最安値更新</p><p class="v tnum"><span id="stat-updates">0</span><small style="font-size:12px;margin-left:2px">回</small></p></div>
-        <div class="stat"><p class="k">支出合計</p><p class="v tnum" id="stat-total">¥0</p></div>
-      </div>
-
-      <div class="section-head" style="margin-top:0"><h2>価格の推移</h2></div>
       <div id="dash-body">
+        <div class="section-head" style="margin-top:4px"><h2>単価の推移</h2></div>
         <select id="chart-select" class="select" aria-label="商品を選ぶ"></select>
+        <p class="unit-note" id="unit-note"></p>
+        <div class="stats">
+          <div class="stat"><p class="k">最安</p><p class="v tnum" id="stat-min"></p></div>
+          <div class="stat"><p class="k">直近</p><p class="v tnum" id="stat-last"></p></div>
+          <div class="stat"><p class="k">平均</p><p class="v tnum" id="stat-avg"></p></div>
+        </div>
         <div class="chart-wrap"><canvas id="priceChart"></canvas></div>
         <div id="history-rows"></div>
       </div>
       <div id="dash-empty" class="state" hidden>
         <h3>まだ記録がありません</h3>
-        <p>リストの商品を「買った」にすると、<br>ここに価格の推移が並びます。</p>
+        <p>リストの商品を「買った」にすると、<br>ここに単価の推移が並びます。</p>
       </div>
     </section>
   </main>
@@ -251,11 +287,9 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
     <div class="grab"></div>
     <h3 class="sheet-title" id="add-title">アイテムを追加</h3>
     <div class="field"><label for="input-name">商品名</label>
-      <input type="text" id="input-name" list="suggest-names" autocomplete="off" placeholder="例：牛乳">
-      <datalist id="suggest-names"></datalist></div>
+      <div class="combo"><input type="text" id="input-name" autocomplete="off" placeholder="選ぶか、そのまま入力"></div></div>
     <div class="field"><label for="input-place">購入予定の場所</label>
-      <input type="text" id="input-place" list="suggest-places" autocomplete="off" placeholder="例：近所のスーパー">
-      <datalist id="suggest-places"></datalist></div>
+      <div class="combo"><input type="text" id="input-place" autocomplete="off" placeholder="選ぶか、そのまま入力"></div></div>
     <div class="field"><label for="input-date">いつまでに（任意）</label>
       <input type="date" id="input-date"></div>
     <div class="field"><label>登録者</label><div class="seg" id="user-seg"></div></div>
@@ -271,7 +305,7 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
     <div class="grab"></div>
     <h3 class="sheet-title" id="archive-name"></h3>
     <div class="cheapest" id="archive-cheapest"></div>
-    <div class="field"><label for="archive-price">購入金額</label>
+    <div class="field"><label for="archive-price">購入金額（合計）</label>
       <div class="price-input"><span>¥</span><input type="number" id="archive-price" inputmode="numeric" min="0" placeholder="0"></div></div>
     <div class="row2">
       <div class="field"><label>金額の種類</label>
@@ -279,9 +313,15 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
       <div class="field"><label>税率</label>
         <div class="seg disabled" id="tax-rate-seg"><button type="button" data-v="1.08" class="on">8%</button><button type="button" data-v="1.10">10%</button></div></div>
     </div>
+    <div class="field"><label for="archive-qty">数量</label>
+      <div class="qty-row">
+        <input type="number" id="archive-qty" inputmode="decimal" min="0" step="any" placeholder="1">
+        <div class="seg" id="unit-seg"><button type="button" data-v="個">個</button><button type="button" data-v="g">g</button><button type="button" data-v="ml">ml</button></div>
+      </div>
+      <p class="hint" id="qty-hint"></p></div>
     <p class="preview" id="archive-preview"></p>
     <div class="field"><label for="archive-place">購入した場所</label>
-      <input type="text" id="archive-place" list="suggest-places" autocomplete="off" placeholder="例：近所のスーパー"></div>
+      <div class="combo"><input type="text" id="archive-place" autocomplete="off" placeholder="選ぶか、そのまま入力"></div></div>
     <div class="field"><label for="archive-date">購入日</label>
       <input type="date" id="archive-date"></div>
     <button class="btn primary" id="archive-save">記録して、リストから外す</button>
@@ -311,7 +351,7 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
   <div class="sheet" role="dialog" aria-modal="true">
     <div class="grab"></div>
     <h3 class="sheet-title">レシートの読み取り結果</h3>
-    <p class="sheet-sub">リストの商品と紐付けると、まとめて記録します。金額は直せます。</p>
+    <p class="sheet-sub">リストの商品と紐付けると、まとめて記録します。金額（その商品の合計）と数量は直せます。</p>
     <div id="receipt-rows"></div>
     <button class="btn primary" id="receipt-save" style="margin-top:18px">選んだものを記録する</button>
     <button class="btn ghost" data-close>キャンセル</button>
@@ -325,18 +365,27 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
 'use strict';
 
 // ★ GASで発行したウェブアプリのURL（/exec で終わるもの）を貼り付けてください ★
-const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyi2Y7vzvW5ldQm-C8F78Mcxsn0W95HgsNWbOGQfRm1jcEJ4GAKWV0ZF3AJ4kNsIVjfew/exec';
+const GAS_WEB_APP_URL = 'ここにGASのウェブアプリURLを貼る';
 
 const USERS = [
   { name: 'ぱら', initial: 'ぱ', cls: 'u-para' },
   { name: 'りな', initial: 'り', cls: 'u-rina' }
 ];
+const UNITS = ['個', 'g', 'ml'];
+const UNIT_BASE = { '個': 1, 'g': 100, 'ml': 100 }; // 単価の基準（1個／100g／100ml）
+const QTY_HINT = {
+  '個': '個数です。2本まとめて買ったなら「2」',
+  'g': 'グラム数です。480gなら「480」',
+  'ml': 'ミリリットル数です。1Lなら「1000」'
+};
+const NONE = '__none__';
 const ICON_CHECK = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const ICON_DOTS = '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>';
 
 // ---------- 状態 ----------
 let shoppingList = [];
 let historyData = [];
+let masters = { products: [], places: [] };
 let archiveTarget = null;
 let archiveCheapest = null;
 let editingId = null;
@@ -347,6 +396,8 @@ let chartInstance = null;
 let selectedChartKey = '';
 let lastLoadedAt = 0;
 let currentTab = 'list';
+let placeFilter = 'all';
+let outdatedWarned = false;
 
 // ---------- ユーティリティ ----------
 const $ = id => document.getElementById(id);
@@ -366,10 +417,72 @@ function daysUntil(s) {
 }
 function fmtDate(s) { if (!s) return ''; const d = parseDate(s); return `${d.getMonth() + 1}/${d.getDate()}`; }
 const yen = n => '¥' + Math.round(Number(n) || 0).toLocaleString('ja-JP');
+const fmtQty = q => { q = Number(q) || 0; return String(Number.isInteger(q) ? q : Math.round(q * 100) / 100); };
+// 単価：100円未満は小数1桁、それ以上は整数で表示
+const fmtUP = n => { n = Number(n) || 0; return '¥' + (n >= 100 ? Math.round(n) : Math.round(n * 10) / 10).toLocaleString('ja-JP'); };
+const perLabel = unit => (unit === 'g' ? '/100g' : unit === 'ml' ? '/100ml' : '/個');
+const perText = unit => (unit === 'g' ? '100gあたり' : unit === 'ml' ? '100mlあたり' : '1個あたり');
+const unitPrice = e => (Number(e.price) || 0) / (e.qty > 0 ? e.qty : 1) * UNIT_BASE[e.unit || '個'];
 function userOf(name) { return USERS.find(u => u.name === name) || { name: name || '?', initial: String(name || '?').slice(0, 1), cls: 'u-other' }; }
 function mono(name) { const u = userOf(name); return `<span class="mono ${u.cls}" title="${esc(u.name)}">${esc(u.initial)}</span>`; }
 const findItem = id => shoppingList.find(i => String(i.id) === String(id));
 function isConfigured() { return GAS_WEB_APP_URL.startsWith('https://script.google.com/') && !GAS_WEB_APP_URL.includes('XXXXX'); }
+function placeKey(p) { return norm(p) || NONE; }
+
+// ---------- 商品・単位まわり ----------
+function productMaster(name) { const k = norm(name); return masters.products.find(p => norm(p.name) === k) || null; }
+function historyOf(name) { const k = norm(name); return historyData.filter(h => norm(h.name) === k); }
+function latestEntry(entries) {
+  let best = null;
+  entries.forEach(e => { if (!best || (e.date || '') >= (best.date || '')) best = e; });
+  return best;
+}
+// 商品の単位：マスタ → 履歴の最新 → 個
+function knownUnit(name) {
+  const m = productMaster(name);
+  if (m && UNITS.includes(m.unit)) return m.unit;
+  const hs = historyOf(name);
+  return hs.length ? latestEntry(hs).unit : null;
+}
+const unitOfProduct = name => knownUnit(name) || '個';
+// 数量の初期値：同じ単位で最後に買った数量 → マスタの通常数量 → （個なら1）
+function lastQty(name, unit) {
+  const same = historyOf(name).filter(h => h.unit === unit && h.qty > 0);
+  if (same.length) return latestEntry(same).qty;
+  const m = productMaster(name);
+  if (m && m.unit === unit && m.qty > 0) return m.qty;
+  return unit === '個' ? 1 : 0;
+}
+function cheapestFor(name, unit) {
+  let best = null;
+  historyOf(name).forEach(h => {
+    if (h.unit === unit && h.price > 0) {
+      const up = unitPrice(h);
+      if (!best || up < best.up) best = { ...h, up };
+    }
+  });
+  return best;
+}
+function uniqOptions(groups) {
+  const seen = new Set(); const out = [];
+  groups.forEach(arr => arr.forEach(o => { const k = norm(o.v); if (k && !seen.has(k)) { seen.add(k); out.push(o); } }));
+  return out;
+}
+function productOptions() {
+  const sub = n => { const u = knownUnit(n); return u && u !== '個' ? u : ''; };
+  return uniqOptions([
+    masters.products.map(p => ({ v: p.name, sub: sub(p.name) })),
+    historyData.map(h => ({ v: h.name, sub: sub(h.name) })),
+    shoppingList.map(i => ({ v: i.name, sub: sub(i.name) }))
+  ]);
+}
+function placeOptions() {
+  return uniqOptions([
+    masters.places.map(v => ({ v })),
+    historyData.map(h => ({ v: h.place })),
+    shoppingList.map(i => ({ v: i.place }))
+  ]);
+}
 
 // ---------- API ----------
 async function fetchAPI(action, payload = {}, timeoutMs = 30000) {
@@ -404,7 +517,7 @@ function toast(msg, isError = false) {
   t.classList.toggle('error', isError);
   t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), isError ? 5000 : 2600);
+  toastTimer = setTimeout(() => t.classList.remove('show'), isError ? 6000 : 2600);
 }
 function showError(prefix, e) { toast(`${prefix}：${e && e.message ? e.message : e}`, true); }
 function showLoading(text) { $('loading-text').textContent = text || '処理中'; $('loading').classList.add('show'); }
@@ -419,6 +532,53 @@ function closeSheet(id) {
   $(id).classList.remove('open');
   if (!document.querySelector('.sheet-wrap.open')) document.body.classList.remove('lock');
 }
+function segValue(id) { const b = $(id).querySelector('button.on'); return b ? b.dataset.v : null; }
+function setSeg(id, v) { $(id).querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); }
+function bindSeg(id, onChange) {
+  $(id).addEventListener('click', e => {
+    const b = e.target.closest('button[data-v]'); if (!b) return;
+    setSeg(id, b.dataset.v);
+    if (onChange) onChange();
+  });
+}
+
+// ---------- コンボボックス（プルダウン＋自由入力） ----------
+function setupCombo(input, getOptions) {
+  const list = document.createElement('div');
+  list.className = 'combo-list';
+  list.hidden = true;
+  input.parentElement.appendChild(list);
+
+  function render() {
+    const raw = input.value.trim();
+    const q = norm(raw);
+    const all = getOptions();
+    const matched = q ? all.filter(o => norm(o.v).includes(q)) : all;
+    const exact = all.some(o => norm(o.v) === q);
+    const rows = [];
+    if (q && !exact) rows.push(`<div class="combo-opt new" data-v="${esc(raw)}">「${esc(raw)}」を新しく追加</div>`);
+    matched.forEach(o => rows.push(`<div class="combo-opt" data-v="${esc(o.v)}"><span>${esc(o.v)}</span>${o.sub ? `<small>${esc(o.sub)}</small>` : ''}</div>`));
+    if (!rows.length) { list.hidden = true; return; }
+    list.innerHTML = rows.join('');
+    list.hidden = false;
+    if (list.scrollIntoView) requestAnimationFrame(() => list.scrollIntoView({ block: 'nearest' }));
+  }
+  const close = () => { list.hidden = true; };
+
+  input.addEventListener('focus', render);
+  input.addEventListener('input', render);
+  input.addEventListener('blur', () => setTimeout(close, 120));
+  list.addEventListener('mousedown', e => e.preventDefault());
+  list.addEventListener('pointerdown', e => e.preventDefault());
+  list.addEventListener('click', e => {
+    const o = e.target.closest('.combo-opt'); if (!o) return;
+    input.value = o.dataset.v;
+    close();
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    input.blur();
+  });
+  return { close };
+}
 
 // ---------- データ読み込み ----------
 async function loadData(initial = false) {
@@ -426,10 +586,27 @@ async function loadData(initial = false) {
   if (initial) renderSkeleton();
   $('refresh-icon').classList.add('spin');
   try {
-    const [listRes, histRes] = await Promise.all([fetchAPI('getShoppingList'), fetchAPI('getHistoryData')]);
+    const [listRes, histRes, masterRes] = await Promise.all([
+      fetchAPI('getShoppingList'),
+      fetchAPI('getHistoryData'),
+      fetchAPI('getMasters').catch(() => null) // GASが古くてもリスト表示は止めない
+    ]);
     shoppingList = listRes.data || [];
-    historyData = (histRes.data || []).map(h => ({ ...h, price: Number(h.price) || 0 }));
+    historyData = (histRes.data || []).map(h => ({
+      ...h,
+      price: Number(h.price) || 0,
+      qty: Number(h.qty) > 0 ? Number(h.qty) : 1,
+      unit: UNITS.includes(h.unit) ? h.unit : '個'
+    }));
+    const md = masterRes && masterRes.data;
+    masters = md ? { products: md.products || [], places: md.places || [] } : { products: [], places: [] };
     lastLoadedAt = Date.now();
+
+    const stale = shoppingList.some(i => i.id === undefined) ? 'IDが返っていません' : (!md ? 'マスタ機能が未反映です' : '');
+    if (stale && !outdatedWarned) {
+      outdatedWarned = true;
+      toast(`GASが最新版ではありません（${stale}）。GASを更新して再デプロイしてください`, true);
+    }
     renderAll();
   } catch (e) {
     if (initial) renderLoadError(e); else showError('更新できませんでした', e);
@@ -439,14 +616,14 @@ async function loadData(initial = false) {
 }
 
 function renderAll() {
+  renderChips();
   renderList();
-  renderSuggests();
   checkAlert();
   if (currentTab === 'dash') renderDashboard();
 }
 
 // ---------- リスト ----------
-function renderSkeleton() { $('shopping-items').innerHTML = '<li class="skel"></li><li class="skel"></li><li class="skel"></li>'; $('list-count').textContent = ''; }
+function renderSkeleton() { $('shopping-items').innerHTML = '<li class="skel"></li><li class="skel"></li><li class="skel"></li>'; $('list-count').textContent = ''; $('chips').hidden = true; }
 function renderConfigState() {
   $('list-count').textContent = '';
   $('shopping-items').innerHTML = '<li class="state"><h3>接続の設定が必要です</h3><p>index.html の先頭付近にある<br>GAS_WEB_APP_URL に、GASで発行した<br>ウェブアプリのURL（/exec で終わるもの）を貼ってください。</p></li>';
@@ -457,15 +634,39 @@ function renderLoadError(e) {
   $('btn-retry').addEventListener('click', () => loadData(true));
 }
 
+function renderChips() {
+  const box = $('chips');
+  if (!shoppingList.length) { box.hidden = true; placeFilter = 'all'; return; }
+  const map = new Map();
+  shoppingList.forEach(i => {
+    const k = placeKey(i.place);
+    if (!map.has(k)) map.set(k, { key: k, label: k === NONE ? '場所未定' : String(i.place).trim(), n: 0 });
+    map.get(k).n++;
+  });
+  if (placeFilter !== 'all' && !map.has(placeFilter)) placeFilter = 'all';
+  const chips = [{ key: 'all', label: 'すべて', n: shoppingList.length },
+    ...[...map.values()].sort((a, b) => ((a.key === NONE) - (b.key === NONE)) || (b.n - a.n))];
+  box.hidden = false;
+  box.innerHTML = chips.map(c =>
+    `<button class="chip${c.key === placeFilter ? ' on' : ''}" data-key="${esc(c.key)}">${esc(c.label)}<em>${c.n}</em></button>`).join('');
+}
+
+function visibleItems() {
+  return placeFilter === 'all' ? shoppingList : shoppingList.filter(i => placeKey(i.place) === placeFilter);
+}
+
 function renderList() {
   const ul = $('shopping-items');
-  $('list-count').textContent = shoppingList.length ? `${shoppingList.length} 件` : '';
+  const visible = visibleItems();
+  if (placeFilter === 'all') $('list-title').textContent = 'いま買うもの';
+  else $('list-title').textContent = placeFilter === NONE ? '場所が未定のもの' : `${String(visible[0].place).trim()}で買うもの`;
+  $('list-count').textContent = shoppingList.length ? `${visible.length} 件` : '';
   if (!shoppingList.length) {
     ul.innerHTML = '<li class="state"><h3>リストは空です</h3><p>買いたいものを、ひとつずつ。</p></li>';
     return;
   }
   const key = i => (i.date ? parseDate(i.date).getTime() : 8.64e15);
-  const sorted = [...shoppingList].sort((a, b) => key(a) - key(b));
+  const sorted = [...visible].sort((a, b) => key(a) - key(b));
   ul.innerHTML = sorted.map(item => {
     let dueHtml = '';
     if (item.date) {
@@ -484,14 +685,6 @@ function renderList() {
       <button class="more" data-act="menu" aria-label="メニュー">${ICON_DOTS}</button>
     </li>`;
   }).join('');
-}
-
-function renderSuggests() {
-  const uniq = arr => { const seen = new Set(); return arr.filter(v => { const k = norm(v); if (!k || seen.has(k)) return false; seen.add(k); return true; }); };
-  const names = uniq([...historyData.map(h => h.name), ...shoppingList.map(i => i.name)]);
-  const places = uniq([...historyData.map(h => h.place), ...shoppingList.map(i => i.place)]);
-  $('suggest-names').innerHTML = names.map(n => `<option value="${esc(n)}"></option>`).join('');
-  $('suggest-places').innerHTML = places.map(p => `<option value="${esc(p)}"></option>`).join('');
 }
 
 // ---------- 期限アラート ----------
@@ -514,7 +707,9 @@ function openAddSheet(src = null, mode = 'add') {
   $('add-title').textContent = { add: 'アイテムを追加', edit: '内容を編集', copy: 'コピーして追加' }[mode];
   $('add-save').textContent = mode === 'edit' ? '更新する' : 'リストに追加';
   $('input-name').value = src ? src.name || '' : '';
-  $('input-place').value = src ? src.place || '' : '';
+  // 場所で絞り込み中に追加するときは、その場所を最初から入れておく
+  const filterPlace = placeFilter !== 'all' && placeFilter !== NONE && visibleItems()[0] ? String(visibleItems()[0].place).trim() : '';
+  $('input-place').value = src ? src.place || '' : filterPlace;
   $('input-date').value = src ? src.date || '' : '';
   formUser = (src && src.user) || store.get('lastUser') || USERS[0].name;
   renderUserSeg();
@@ -565,59 +760,66 @@ async function doDelete() {
 }
 
 // ---------- 購入記録 ----------
-function cheapestFor(name) {
-  const k = norm(name);
-  let best = null;
-  historyData.forEach(h => { if (norm(h.name) === k && h.price > 0 && (!best || h.price < best.price)) best = h; });
-  return best;
-}
-function segValue(id) { const b = $(id).querySelector('button.on'); return b ? b.dataset.v : null; }
-function bindSeg(id, onChange) {
-  $(id).addEventListener('click', e => {
-    const b = e.target.closest('button[data-v]'); if (!b) return;
-    $(id).querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
-    if (onChange) onChange();
-  });
-}
 function finalPriceOf(price, type, rate) { return type === 'out' ? Math.floor(price * Number(rate) + 1e-9) : price; }
 
 function openArchiveSheet(id) {
   const it = findItem(id); if (!it) return;
   archiveTarget = it;
-  archiveCheapest = cheapestFor(it.name);
+  const unit = unitOfProduct(it.name);
   $('archive-name').textContent = it.name;
   $('archive-price').value = '';
   $('archive-place').value = it.place || '';
   $('archive-date').value = todayStr();
-  $('tax-type-seg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === 'in'));
-  $('tax-rate-seg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === '1.08'));
+  setSeg('tax-type-seg', 'in');
+  setSeg('tax-rate-seg', '1.08');
   $('tax-rate-seg').classList.add('disabled');
-  $('archive-cheapest').innerHTML = archiveCheapest
-    ? `過去の最安値<strong class="tnum">${yen(archiveCheapest.price)}</strong><br>${esc(archiveCheapest.place || '場所の記録なし')} ・ ${esc(fmtDate(archiveCheapest.date))}`
-    : '初めての購入です。ここから記録が始まります。';
-  updateArchivePreview();
+  setSeg('unit-seg', unit);
+  const q = lastQty(it.name, unit);
+  $('archive-qty').value = q > 0 ? fmtQty(q) : '';
+  refreshArchiveInfo();
   openSheet('sheet-archive');
+}
+function refreshArchiveInfo() {
+  if (!archiveTarget) return;
+  const unit = segValue('unit-seg');
+  archiveCheapest = cheapestFor(archiveTarget.name, unit);
+  $('qty-hint').textContent = QTY_HINT[unit];
+  $('archive-cheapest').innerHTML = archiveCheapest
+    ? `過去の最安単価<strong class="tnum">${fmtUP(archiveCheapest.up)}${perLabel(unit)}</strong><br>${esc(archiveCheapest.place || '場所の記録なし')} ・ ${esc(fmtDate(archiveCheapest.date))}`
+    : (historyOf(archiveTarget.name).length ? '以前の記録は単位が違うため、比べられません。' : '初めての購入です。ここから記録が始まります。');
+  updateArchivePreview();
 }
 function updateArchivePreview() {
   const price = Number($('archive-price').value);
+  const qty = Number($('archive-qty').value);
+  const unit = segValue('unit-seg');
   const type = segValue('tax-type-seg');
   $('tax-rate-seg').classList.toggle('disabled', type !== 'out');
   const el = $('archive-preview');
   if (!(price > 0)) { el.innerHTML = ''; return; }
   const final = finalPriceOf(price, type, segValue('tax-rate-seg'));
-  let hint = '';
-  if (archiveCheapest) {
-    if (final < archiveCheapest.price) hint = ' ・ <span class="good">過去最安値を更新します</span>';
-    else if (final === archiveCheapest.price) hint = ' ・ <span class="good">過去最安値と同じです</span>';
-    else hint = ` ・ 最安値より ${yen(final - archiveCheapest.price)} 高め`;
+  let html = `税込 <b class="tnum">${yen(final)}</b>`;
+  if (qty > 0) {
+    const up = final / qty * UNIT_BASE[unit];
+    html += ` ・ 単価 <b class="tnum">${fmtUP(up)}${perLabel(unit)}</b>`;
+    if (archiveCheapest) {
+      const diff = up - archiveCheapest.up;
+      if (diff < -0.005) html += '<br><span class="good">過去最安値を更新します</span>';
+      else if (Math.abs(diff) <= 0.005) html += '<br><span class="good">過去最安値と同じです</span>';
+      else html += `<br>最安値より ${fmtUP(diff)}${perLabel(unit)} 高め`;
+    }
   }
-  el.innerHTML = `税込 <b class="tnum">${yen(final)}</b>${hint}`;
+  el.innerHTML = html;
 }
 async function executeArchive() {
   if (!archiveTarget) return;
   const price = Number($('archive-price').value);
   if (!(price > 0)) { toast('金額を入力してください', true); $('archive-price').focus(); return; }
+  const qty = Number($('archive-qty').value);
+  if (!(qty > 0)) { toast('数量を入力してください', true); $('archive-qty').focus(); return; }
+  const unit = segValue('unit-seg');
   const final = finalPriceOf(price, segValue('tax-type-seg'), segValue('tax-rate-seg'));
+  const up = final / qty * UNIT_BASE[unit];
   const prev = archiveCheapest;
   const payload = {
     id: archiveTarget.id,
@@ -625,18 +827,20 @@ async function executeArchive() {
     place: $('archive-place').value.trim(),
     user: archiveTarget.user,
     price: final,
-    taxType: 'in', // 税計算は画面側で済ませ、税込価格を送る
+    taxType: 'in', // 税計算は画面側で済ませ、税込の合計金額を送る
     taxRate: '1.10',
+    quantity: qty,
+    unit,
     archiveDate: $('archive-date').value || todayStr()
   };
   closeSheet('sheet-archive');
   try {
     await withLoading('記録しています', async () => { await fetchAPI('archiveItem', payload); await loadData(); });
-    toast(prev && final < prev.price ? `過去最安値を更新しました  ${yen(final)}` : '購入を記録しました');
+    toast(prev && up < prev.up - 0.005 ? `過去最安値を更新しました  ${fmtUP(up)}${perLabel(unit)}` : '購入を記録しました');
   } catch (e) { showError('記録できませんでした', e); }
 }
 
-// ---------- ダッシュボード ----------
+// ---------- 価格タブ ----------
 function groupHistory() {
   const map = new Map();
   [...historyData].sort((a, b) => (a.date || '').localeCompare(b.date || '')).forEach(h => {
@@ -647,24 +851,7 @@ function groupHistory() {
   return map;
 }
 function renderDashboard() {
-  const month = todayStr().slice(0, 7);
-  $('dash-month').textContent = `${Number(month.slice(5))}月のまとめ`;
   const groups = groupHistory();
-  let count = 0, total = 0, updates = 0;
-  historyData.forEach(h => { if ((h.date || '').startsWith(month)) { count++; total += h.price || 0; } });
-  groups.forEach(g => {
-    let min = Infinity;
-    g.entries.forEach(e => {
-      if (e.price > 0) {
-        if (min !== Infinity && e.price < min && (e.date || '').startsWith(month)) updates++;
-        min = Math.min(min, e.price);
-      }
-    });
-  });
-  $('stat-count').textContent = count;
-  $('stat-updates').textContent = updates;
-  $('stat-total').textContent = yen(total);
-
   const list = [...groups.values()].sort((a, b) => (b.entries[b.entries.length - 1].date || '').localeCompare(a.entries[a.entries.length - 1].date || ''));
   $('dash-body').hidden = !list.length;
   $('dash-empty').hidden = !!list.length;
@@ -675,9 +862,24 @@ function renderDashboard() {
   renderChart(groups.get(selectedChartKey));
 }
 function renderChart(group) {
-  const entries = group.entries;
+  const unit = unitOfProduct(group.name);
+  const comparable = group.entries.filter(e => e.unit === unit);
+  const ups = comparable.map(unitPrice);
   let minIdx = -1;
-  entries.forEach((e, i) => { if (e.price > 0 && (minIdx < 0 || e.price < entries[minIdx].price)) minIdx = i; });
+  ups.forEach((u, i) => { if (minIdx < 0 || u < ups[minIdx]) minIdx = i; });
+
+  $('unit-note').textContent = `単価は「${perText(unit)}」で比べています。` +
+    (comparable.length < group.entries.length ? `単位が違う記録 ${group.entries.length - comparable.length} 件は、推移に含めていません。` : '');
+  const small = `<small>${perLabel(unit)}</small>`;
+  if (comparable.length) {
+    const lastE = latestEntry(comparable);
+    const avg = ups.reduce((s, v) => s + v, 0) / ups.length;
+    $('stat-min').innerHTML = fmtUP(ups[minIdx]) + small;
+    $('stat-last').innerHTML = fmtUP(unitPrice(lastE)) + small;
+    $('stat-avg').innerHTML = fmtUP(avg) + small;
+  } else {
+    ['stat-min', 'stat-last', 'stat-avg'].forEach(id => { $(id).textContent = '―'; });
+  }
 
   if (typeof Chart !== 'undefined') {
     Chart.defaults.font.family = "'Noto Sans JP', sans-serif";
@@ -686,13 +888,13 @@ function renderChart(group) {
     chartInstance = new Chart($('priceChart').getContext('2d'), {
       type: 'line',
       data: {
-        labels: entries.map(e => fmtDate(e.date)),
+        labels: comparable.map(e => fmtDate(e.date)),
         datasets: [{
-          data: entries.map(e => e.price),
+          data: ups.map(u => Math.round(u * 10) / 10),
           borderColor: '#2E4B3F', borderWidth: 2, tension: 0.25, fill: true,
           backgroundColor: 'rgba(46,75,63,0.07)',
           pointRadius: 4, pointHoverRadius: 6,
-          pointBackgroundColor: entries.map((e, i) => (i === minIdx ? '#A5694C' : '#2E4B3F')),
+          pointBackgroundColor: comparable.map((e, i) => (i === minIdx ? '#A5694C' : '#2E4B3F')),
           pointBorderColor: '#F7F4EE', pointBorderWidth: 2
         }]
       },
@@ -703,9 +905,12 @@ function renderChart(group) {
           tooltip: {
             backgroundColor: '#1E2420', padding: 10, displayColors: false, cornerRadius: 8,
             callbacks: {
-              title: items => entries[items[0].dataIndex].date,
-              label: ctx => yen(ctx.parsed.y),
-              afterLabel: ctx => entries[ctx.dataIndex].place || ''
+              title: items => comparable[items[0].dataIndex].date,
+              label: ctx => fmtUP(ctx.parsed.y) + perLabel(unit),
+              afterLabel: ctx => {
+                const e = comparable[ctx.dataIndex];
+                return [e.place || '', `${yen(e.price)} ／ ${fmtQty(e.qty)}${e.unit}`].filter(Boolean);
+              }
             }
           }
         },
@@ -717,10 +922,16 @@ function renderChart(group) {
     });
   }
 
-  $('history-rows').innerHTML = [...entries].reverse().map(e => {
-    const isMin = entries.indexOf(e) === minIdx;
-    return `<div class="h-row"><div><span class="sub" style="color:var(--ink);font-size:14px">${esc(fmtDate(e.date))}</span><span class="sub">${esc(e.place || '場所の記録なし')}</span></div>
-      <div class="price tnum">${isMin ? '<span class="badge">最安</span>' : ''}${yen(e.price)}</div></div>`;
+  $('history-rows').innerHTML = [...group.entries].reverse().map(e => {
+    const comparableRow = e.unit === unit;
+    const detail = `${esc(e.place || '場所の記録なし')} ・ ${yen(e.price)} ／ ${esc(fmtQty(e.qty))}${esc(e.unit)}`;
+    if (!comparableRow) {
+      return `<div class="h-row off"><div><span class="date">${esc(fmtDate(e.date))}</span><span class="sub">${detail}</span></div>
+        <div class="price tnum">単位が違うため対象外</div></div>`;
+    }
+    const isMin = comparable.indexOf(e) === minIdx;
+    return `<div class="h-row"><div><span class="date">${esc(fmtDate(e.date))}</span><span class="sub">${detail}</span></div>
+      <div class="price tnum">${isMin ? '<span class="badge">最安</span>' : ''}${fmtUP(unitPrice(e))}<span class="sub" style="display:inline;margin-left:1px">${perLabel(unit)}</span></div></div>`;
   }).join('');
 }
 
@@ -781,11 +992,40 @@ function renderReceiptSheet() {
         `<option value="${esc(s.id)}"${guess && String(guess.id) === String(s.id) ? ' selected' : ''}>${esc(s.name)}</option>`).join('');
       return `<div class="r-row">
         <div class="r-top"><span class="r-name">${esc(r.name)}</span>
-          <span class="r-price"><span>¥</span><input type="number" inputmode="numeric" id="r-price-${i}" value="${esc(Number(r.price) || 0)}"></span></div>
-        <select id="r-match-${i}" aria-label="${esc(r.name)}の紐付け先">${options}</select></div>`;
+          <span class="r-price"><span>¥</span><input type="number" inputmode="numeric" id="r-price-${i}" data-i="${i}" value="${esc(Number(r.price) || 0)}"></span></div>
+        <select id="r-match-${i}" data-i="${i}" aria-label="${esc(r.name)}の紐付け先">${options}</select>
+        <div class="r-qty" id="r-qty-wrap-${i}" hidden>
+          <span>数量</span>
+          <input type="number" inputmode="decimal" step="any" min="0" id="r-qty-${i}" data-i="${i}">
+          <select id="r-unit-${i}" data-i="${i}">${UNITS.map(u => `<option value="${u}">${u}</option>`).join('')}</select>
+          <span class="r-up" id="r-up-${i}"></span>
+        </div></div>`;
     }).join('');
+    receiptRows.forEach((r, i) => syncReceiptRow(i, true));
   }
   openSheet('sheet-receipt');
+}
+// 紐付けた商品に合わせて、数量と単位の初期値を入れる
+function syncReceiptRow(i, reset, forcedUnit) {
+  const id = $(`r-match-${i}`).value;
+  const wrap = $(`r-qty-wrap-${i}`);
+  if (!id) { wrap.hidden = true; return; }
+  wrap.hidden = false;
+  if (reset) {
+    const item = findItem(id), r = receiptRows[i];
+    const unit = forcedUnit || knownUnit(item.name) || (UNITS.includes(r.qtyUnit) ? r.qtyUnit : '個');
+    const ocrQty = r.qtyUnit === unit && Number(r.quantity) > 0 ? Number(r.quantity) : 0;
+    const q = ocrQty || lastQty(item.name, unit);
+    $(`r-unit-${i}`).value = unit;
+    $(`r-qty-${i}`).value = q > 0 ? fmtQty(q) : '';
+  }
+  updateReceiptUnitPrice(i);
+}
+function updateReceiptUnitPrice(i) {
+  const price = Number($(`r-price-${i}`).value);
+  const qty = Number($(`r-qty-${i}`).value);
+  const unit = $(`r-unit-${i}`).value;
+  $(`r-up-${i}`).textContent = price > 0 && qty > 0 ? `単価 ${fmtUP(price / qty * UNIT_BASE[unit])}${perLabel(unit)}` : '';
 }
 async function executeReceiptArchive() {
   const chosen = [];
@@ -796,8 +1036,12 @@ async function executeReceiptArchive() {
     if (seen.has(id)) { toast('同じ商品が2か所で選ばれています', true); return; }
     seen.add(id);
     const item = findItem(id);
+    if (!item) continue;
     const price = Number($(`r-price-${i}`).value);
-    if (item && price > 0) chosen.push({ item, price });
+    const qty = Number($(`r-qty-${i}`).value);
+    if (!(price > 0)) { toast(`「${item.name}」の金額を入力してください`, true); return; }
+    if (!(qty > 0)) { toast(`「${item.name}」の数量を入力してください`, true); return; }
+    chosen.push({ item, price, qty, unit: $(`r-unit-${i}`).value });
   }
   if (!chosen.length) { toast('紐付けた商品がありません', true); return; }
   closeSheet('sheet-receipt');
@@ -809,7 +1053,8 @@ async function executeReceiptArchive() {
       try {
         await fetchAPI('archiveItem', {
           id: c.item.id, name: c.item.name, place: c.item.place, user: c.item.user,
-          price: c.price, taxType: 'in', taxRate: '1.10', archiveDate: date
+          price: c.price, taxType: 'in', taxRate: '1.10',
+          quantity: c.qty, unit: c.unit, archiveDate: date
         });
         done++;
       } catch (e) { failed.push(c.item.name); }
@@ -833,12 +1078,25 @@ function switchTab(tab) {
 // ---------- 初期化 ----------
 function init() {
   $('today-label').textContent = new Date().toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'long' });
+  placeFilter = store.get('placeFilter') || 'all';
   renderUserSeg();
+
+  setupCombo($('input-name'), productOptions);
+  setupCombo($('input-place'), placeOptions);
+  setupCombo($('archive-place'), placeOptions);
 
   document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
   $('btn-add').addEventListener('click', () => openAddSheet());
   $('btn-refresh').addEventListener('click', () => loadData());
   $('notice-close').addEventListener('click', () => { store.set('alertClosedAt', String(Date.now())); $('notice').hidden = true; });
+
+  $('chips').addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    placeFilter = b.dataset.key;
+    store.set('placeFilter', placeFilter);
+    renderChips();
+    renderList();
+  });
 
   $('shopping-items').addEventListener('click', e => {
     const btn = e.target.closest('[data-act]'); if (!btn) return;
@@ -863,7 +1121,15 @@ function init() {
 
   bindSeg('tax-type-seg', updateArchivePreview);
   bindSeg('tax-rate-seg', updateArchivePreview);
+  bindSeg('unit-seg', () => {
+    // 単位を切り替えたら、その単位で前回買った数量を入れ直す
+    const unit = segValue('unit-seg');
+    const q = archiveTarget ? lastQty(archiveTarget.name, unit) : 0;
+    $('archive-qty').value = q > 0 ? fmtQty(q) : '';
+    refreshArchiveInfo();
+  });
   $('archive-price').addEventListener('input', updateArchivePreview);
+  $('archive-qty').addEventListener('input', updateArchivePreview);
   $('archive-save').addEventListener('click', executeArchive);
 
   $('menu-edit').addEventListener('click', () => { const it = findItem(menuTargetId); closeSheet('sheet-menu'); if (it) openAddSheet(it, 'edit'); });
@@ -876,6 +1142,15 @@ function init() {
 
   $('receipt-input').addEventListener('change', handleReceiptUpload);
   $('receipt-save').addEventListener('click', executeReceiptArchive);
+  $('receipt-rows').addEventListener('change', e => {
+    const i = e.target.dataset.i; if (i === undefined) return;
+    if (e.target.id.startsWith('r-match-')) syncReceiptRow(Number(i), true);
+    else if (e.target.id.startsWith('r-unit-')) syncReceiptRow(Number(i), true, e.target.value);
+  });
+  $('receipt-rows').addEventListener('input', e => {
+    const i = e.target.dataset.i; if (i === undefined) return;
+    if (e.target.id.startsWith('r-price-') || e.target.id.startsWith('r-qty-')) updateReceiptUnitPrice(Number(i));
+  });
 
   $('chart-select').addEventListener('change', e => {
     selectedChartKey = e.target.value;
