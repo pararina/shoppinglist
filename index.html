@@ -145,10 +145,12 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
 
 /* コンボボックス（プルダウン＋自由入力） */
 .combo{position:relative}
-.field .combo input[type=text]{padding-right:24px;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%237B817C' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 2px center}
-.combo-list{position:absolute;left:0;right:0;top:100%;z-index:5;max-height:224px;overflow-y:auto;margin-top:4px;
+.field .combo input[type=text]{padding-right:40px}
+.combo-toggle{position:absolute;right:-6px;top:1px;width:40px;height:40px;display:grid;place-items:center;color:var(--muted);border-radius:50%}
+.combo-toggle svg{transition:transform .2s}
+.combo-toggle.open svg{transform:rotate(180deg)}
+.combo-toggle:active{background:var(--accent-soft)}
+.combo-list{position:absolute;left:0;right:0;top:100%;z-index:5;max-height:180px;overflow-y:auto;margin-top:4px;
   background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 28px rgba(30,36,32,.14)}
 .combo-opt{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:12px 14px;font-size:15px;
   border-bottom:1px solid var(--line);cursor:pointer}
@@ -529,6 +531,7 @@ async function withLoading(text, fn) {
 }
 function openSheet(id) { $(id).classList.add('open'); document.body.classList.add('lock'); }
 function closeSheet(id) {
+  closeAllCombos();
   $(id).classList.remove('open');
   if (!document.querySelector('.sheet-wrap.open')) document.body.classList.remove('lock');
 }
@@ -543,13 +546,29 @@ function bindSeg(id, onChange) {
 }
 
 // ---------- コンボボックス（プルダウン＋自由入力） ----------
+// 一覧は「入力欄をタップ」「文字を入力」「右端の▾をタップ」で開き、
+// 「▾をもう一度タップ」「外をタップ」「候補を選ぶ」「Enter／Esc」で閉じる
+const combos = [];
+function closeAllCombos(except) { combos.forEach(c => { if (c !== except) c.close(); }); }
+
 function setupCombo(input, getOptions) {
+  const wrap = input.parentElement;
   const list = document.createElement('div');
   list.className = 'combo-list';
   list.hidden = true;
-  input.parentElement.appendChild(list);
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'combo-toggle';
+  toggle.setAttribute('aria-label', '候補を開く・閉じる');
+  toggle.innerHTML = '<svg viewBox="0 0 12 8" width="12" height="8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l5 5 5-5"/></svg>';
+  wrap.append(toggle, list);
 
-  function render() {
+  const api = { wrap, close, isOpen: () => !list.hidden };
+  combos.push(api);
+
+  function close() { list.hidden = true; toggle.classList.remove('open'); }
+  function open() {
+    closeAllCombos(api);
     const raw = input.value.trim();
     const q = norm(raw);
     const all = getOptions();
@@ -558,16 +577,24 @@ function setupCombo(input, getOptions) {
     const rows = [];
     if (q && !exact) rows.push(`<div class="combo-opt new" data-v="${esc(raw)}">「${esc(raw)}」を新しく追加</div>`);
     matched.forEach(o => rows.push(`<div class="combo-opt" data-v="${esc(o.v)}"><span>${esc(o.v)}</span>${o.sub ? `<small>${esc(o.sub)}</small>` : ''}</div>`));
-    if (!rows.length) { list.hidden = true; return; }
+    if (!rows.length) { close(); return; }
     list.innerHTML = rows.join('');
     list.hidden = false;
+    toggle.classList.add('open');
     if (list.scrollIntoView) requestAnimationFrame(() => list.scrollIntoView({ block: 'nearest' }));
   }
-  const close = () => { list.hidden = true; };
 
-  input.addEventListener('focus', render);
-  input.addEventListener('input', render);
-  input.addEventListener('blur', () => setTimeout(close, 120));
+  input.addEventListener('click', () => { if (list.hidden) open(); }); // 自動フォーカスでは開かない
+  input.addEventListener('input', open);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'Tab') close(); });
+
+  toggle.addEventListener('mousedown', e => e.preventDefault());
+  toggle.addEventListener('pointerdown', e => e.preventDefault());
+  toggle.addEventListener('click', () => {
+    if (list.hidden) { open(); input.blur(); } // 一覧を見るだけなので、キーボードは閉じる
+    else close();
+  });
+
   list.addEventListener('mousedown', e => e.preventDefault());
   list.addEventListener('pointerdown', e => e.preventDefault());
   list.addEventListener('click', e => {
@@ -577,7 +604,6 @@ function setupCombo(input, getOptions) {
     input.dispatchEvent(new Event('change', { bubbles: true }));
     input.blur();
   });
-  return { close };
 }
 
 // ---------- データ読み込み ----------
@@ -1105,12 +1131,18 @@ function init() {
     if (btn.dataset.act === 'menu') openMenuSheet(li.dataset.id);
   });
 
+  document.addEventListener('pointerdown', e => {
+    combos.forEach(c => { if (!c.wrap.contains(e.target)) c.close(); });
+  }, true);
+
   document.addEventListener('click', e => {
     const c = e.target.closest('[data-close]');
     if (c) { const w = c.closest('.sheet-wrap'); if (w) closeSheet(w.id); }
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') document.querySelectorAll('.sheet-wrap.open').forEach(w => closeSheet(w.id));
+    if (e.key !== 'Escape') return;
+    if (combos.some(c => c.isOpen())) { closeAllCombos(); return; }
+    document.querySelectorAll('.sheet-wrap.open').forEach(w => closeSheet(w.id));
   });
 
   $('user-seg').addEventListener('click', e => {
