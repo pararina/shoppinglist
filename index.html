@@ -194,6 +194,9 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
 .r-qty input{width:76px;border:0;border-bottom:1px solid var(--line);text-align:right;font-size:16px;background:transparent;outline:none;padding:2px 0;border-radius:0;color:var(--ink)}
 .r-qty select{border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:14px;background:#fff;color:var(--ink)}
 .r-qty .r-up{margin-left:auto;color:var(--accent);font-weight:500}
+.r-newname{margin-top:10px}
+.r-newname input{width:100%;min-height:42px;border:0;border-bottom:1px solid var(--line);background:transparent;padding:9px 40px 9px 0;font-size:16px;border-radius:0;outline:none;color:var(--ink)}
+.r-newname input:focus{border-bottom-color:var(--accent)}
 .muted{color:var(--muted);font-size:13px;line-height:1.8}
 
 /* トースト・ローディング */
@@ -353,7 +356,10 @@ h1{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:.04em;
   <div class="sheet" role="dialog" aria-modal="true">
     <div class="grab"></div>
     <h3 class="sheet-title">レシートの読み取り結果</h3>
-    <p class="sheet-sub">リストの商品と紐付けると、まとめて記録します。金額（その商品の合計）と数量は直せます。</p>
+    <p class="sheet-sub">リストの商品に紐付けるか、「リスト以外として記録」で名前をつけて記録します。金額（その商品の合計）と数量は直せます。</p>
+    <div class="field"><label for="receipt-place">購入した場所（任意）</label>
+      <div class="combo"><input type="text" id="receipt-place" autocomplete="off" placeholder="選ぶか、そのまま入力"></div>
+      <p class="hint">入力すると、このレシートの全商品の購入場所になります。空のときは、リストの商品はリストの場所を使い、リスト以外の商品は場所なしで記録します。</p></div>
     <div id="receipt-rows"></div>
     <button class="btn primary" id="receipt-save" style="margin-top:18px">選んだものを記録する</button>
     <button class="btn ghost" data-close>キャンセル</button>
@@ -567,12 +573,12 @@ function setupCombo(input, getOptions) {
   combos.push(api);
 
   function close() { list.hidden = true; toggle.classList.remove('open'); }
-  function open() {
+  function open(filtered) { // filtered=true: 入力文字で絞り込む／false: 全件を出す
     closeAllCombos(api);
     const raw = input.value.trim();
     const q = norm(raw);
     const all = getOptions();
-    const matched = q ? all.filter(o => norm(o.v).includes(q)) : all;
+    const matched = filtered && q ? all.filter(o => norm(o.v).includes(q)) : all;
     const exact = all.some(o => norm(o.v) === q);
     const rows = [];
     if (q && !exact) rows.push(`<div class="combo-opt new" data-v="${esc(raw)}">「${esc(raw)}」を新しく追加</div>`);
@@ -584,14 +590,14 @@ function setupCombo(input, getOptions) {
     if (list.scrollIntoView) requestAnimationFrame(() => list.scrollIntoView({ block: 'nearest' }));
   }
 
-  input.addEventListener('click', () => { if (list.hidden) open(); }); // 自動フォーカスでは開かない
-  input.addEventListener('input', open);
+  input.addEventListener('click', () => { if (list.hidden) open(false); }); // 自動フォーカスでは開かない
+  input.addEventListener('input', () => open(true));
   input.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'Tab') close(); });
 
   toggle.addEventListener('mousedown', e => e.preventDefault());
   toggle.addEventListener('pointerdown', e => e.preventDefault());
   toggle.addEventListener('click', () => {
-    if (list.hidden) { open(); input.blur(); } // 一覧を見るだけなので、キーボードは閉じる
+    if (list.hidden) { open(false); input.blur(); } // 一覧を見るだけなので、キーボードは閉じる
     else close();
   });
 
@@ -604,6 +610,7 @@ function setupCombo(input, getOptions) {
     input.dispatchEvent(new Event('change', { bubbles: true }));
     input.blur();
   });
+  return api;
 }
 
 // ---------- データ読み込み ----------
@@ -1000,13 +1007,17 @@ function guessMatch(receiptName, used) {
     return n.length >= 2 && r.length >= 2 && (r.includes(n) || n.includes(r));
   }) || null;
 }
+const RECEIPT_NEW = '__new__'; // 「リスト以外として記録」
+let receiptCombos = [];
+
 function renderReceiptSheet() {
   const box = $('receipt-rows');
+  // 前回の行の一覧（コンボボックス）を片付ける
+  receiptCombos.forEach(a => { const k = combos.indexOf(a); if (k >= 0) combos.splice(k, 1); });
+  receiptCombos = [];
+  $('receipt-place').value = '';
   if (!receiptRows.length) {
     box.innerHTML = '<p class="muted">商品を読み取れませんでした。明るい場所で、レシート全体が写るように撮り直してみてください。</p>';
-    $('receipt-save').hidden = true;
-  } else if (!shoppingList.length) {
-    box.innerHTML = '<p class="muted">リストに商品がないため、紐付けられるものがありません。</p>';
     $('receipt-save').hidden = true;
   } else {
     $('receipt-save').hidden = false;
@@ -1014,12 +1025,17 @@ function renderReceiptSheet() {
     box.innerHTML = receiptRows.map((r, i) => {
       const guess = guessMatch(r.name, used);
       if (guess) used.add(String(guess.id));
-      const options = '<option value="">リストと紐付けない</option>' + shoppingList.map(s =>
-        `<option value="${esc(s.id)}"${guess && String(guess.id) === String(s.id) ? ' selected' : ''}>${esc(s.name)}</option>`).join('');
+      const options = '<option value="">記録しない</option>' +
+        `<option value="${RECEIPT_NEW}">リスト以外として記録（名前をつける）</option>` +
+        shoppingList.map(s =>
+          `<option value="${esc(s.id)}"${guess && String(guess.id) === String(s.id) ? ' selected' : ''}>${esc(s.name)}</option>`).join('');
       return `<div class="r-row">
         <div class="r-top"><span class="r-name">${esc(r.name)}</span>
           <span class="r-price"><span>¥</span><input type="number" inputmode="numeric" id="r-price-${i}" data-i="${i}" value="${esc(Number(r.price) || 0)}"></span></div>
-        <select id="r-match-${i}" data-i="${i}" aria-label="${esc(r.name)}の紐付け先">${options}</select>
+        <select id="r-match-${i}" data-i="${i}" aria-label="${esc(r.name)}の記録のしかた">${options}</select>
+        <div class="r-newname" id="r-new-wrap-${i}" hidden>
+          <div class="combo"><input type="text" id="r-name-${i}" data-i="${i}" autocomplete="off" value="${esc(r.name)}" placeholder="記録する商品名（例：かぼちゃ）"></div>
+        </div>
         <div class="r-qty" id="r-qty-wrap-${i}" hidden>
           <span>数量</span>
           <input type="number" inputmode="decimal" step="any" min="0" id="r-qty-${i}" data-i="${i}">
@@ -1027,21 +1043,30 @@ function renderReceiptSheet() {
           <span class="r-up" id="r-up-${i}"></span>
         </div></div>`;
     }).join('');
+    receiptRows.forEach((r, i) => receiptCombos.push(setupCombo($(`r-name-${i}`), productOptions)));
     receiptRows.forEach((r, i) => syncReceiptRow(i, true));
   }
   openSheet('sheet-receipt');
 }
-// 紐付けた商品に合わせて、数量と単位の初期値を入れる
+// その行で記録する商品名（リストの商品、または自分でつけた名前）
+function receiptProductName(i) {
+  const v = $(`r-match-${i}`).value;
+  if (v === RECEIPT_NEW) return $(`r-name-${i}`).value.trim() || receiptRows[i].name;
+  const item = findItem(v);
+  return item ? item.name : '';
+}
+// 記録のしかたに合わせて、名前欄・数量・単位の初期値を入れる
 function syncReceiptRow(i, reset, forcedUnit) {
-  const id = $(`r-match-${i}`).value;
+  const v = $(`r-match-${i}`).value;
+  $(`r-new-wrap-${i}`).hidden = v !== RECEIPT_NEW;
   const wrap = $(`r-qty-wrap-${i}`);
-  if (!id) { wrap.hidden = true; return; }
+  if (!v) { wrap.hidden = true; return; }
   wrap.hidden = false;
   if (reset) {
-    const item = findItem(id), r = receiptRows[i];
-    const unit = forcedUnit || knownUnit(item.name) || (UNITS.includes(r.qtyUnit) ? r.qtyUnit : '個');
+    const name = receiptProductName(i), r = receiptRows[i];
+    const unit = forcedUnit || knownUnit(name) || (UNITS.includes(r.qtyUnit) ? r.qtyUnit : '個');
     const ocrQty = r.qtyUnit === unit && Number(r.quantity) > 0 ? Number(r.quantity) : 0;
-    const q = ocrQty || lastQty(item.name, unit);
+    const q = ocrQty || lastQty(name, unit);
     $(`r-unit-${i}`).value = unit;
     $(`r-qty-${i}`).value = q > 0 ? fmtQty(q) : '';
   }
@@ -1054,22 +1079,32 @@ function updateReceiptUnitPrice(i) {
   $(`r-up-${i}`).textContent = price > 0 && qty > 0 ? `単価 ${fmtUP(price / qty * UNIT_BASE[unit])}${perLabel(unit)}` : '';
 }
 async function executeReceiptArchive() {
+  const receiptPlace = $('receipt-place').value.trim();
+  const lastUser = store.get('lastUser') || USERS[0].name;
   const chosen = [];
   const seen = new Set();
   for (let i = 0; i < receiptRows.length; i++) {
-    const id = $(`r-match-${i}`).value;
-    if (!id) continue;
-    if (seen.has(id)) { toast('同じ商品が2か所で選ばれています', true); return; }
-    seen.add(id);
-    const item = findItem(id);
-    if (!item) continue;
+    const v = $(`r-match-${i}`).value;
+    if (!v) continue;
+    let rec;
+    if (v === RECEIPT_NEW) {
+      const name = $(`r-name-${i}`).value.trim();
+      if (!name) { toast('記録する商品名を入力してください', true); return; }
+      rec = { id: null, name, place: receiptPlace, user: lastUser };
+    } else {
+      if (seen.has(v)) { toast('同じ商品が2か所で選ばれています', true); return; }
+      seen.add(v);
+      const item = findItem(v);
+      if (!item) continue;
+      rec = { id: item.id, name: item.name, place: receiptPlace || item.place, user: item.user };
+    }
     const price = Number($(`r-price-${i}`).value);
     const qty = Number($(`r-qty-${i}`).value);
-    if (!(price > 0)) { toast(`「${item.name}」の金額を入力してください`, true); return; }
-    if (!(qty > 0)) { toast(`「${item.name}」の数量を入力してください`, true); return; }
-    chosen.push({ item, price, qty, unit: $(`r-unit-${i}`).value });
+    if (!(price > 0)) { toast(`「${rec.name}」の金額を入力してください`, true); return; }
+    if (!(qty > 0)) { toast(`「${rec.name}」の数量を入力してください`, true); return; }
+    chosen.push({ ...rec, price, qty, unit: $(`r-unit-${i}`).value });
   }
-  if (!chosen.length) { toast('紐付けた商品がありません', true); return; }
+  if (!chosen.length) { toast('記録する商品が選ばれていません', true); return; }
   closeSheet('sheet-receipt');
   const date = todayStr();
   let done = 0; const failed = [];
@@ -1078,12 +1113,12 @@ async function executeReceiptArchive() {
       setLoadingText(`記録しています ${done + failed.length + 1}/${chosen.length}`);
       try {
         await fetchAPI('archiveItem', {
-          id: c.item.id, name: c.item.name, place: c.item.place, user: c.item.user,
+          id: c.id, name: c.name, place: c.place, user: c.user,
           price: c.price, taxType: 'in', taxRate: '1.10',
           quantity: c.qty, unit: c.unit, archiveDate: date
         });
         done++;
-      } catch (e) { failed.push(c.item.name); }
+      } catch (e) { failed.push(c.name); }
     }
     await loadData();
   });
@@ -1110,6 +1145,7 @@ function init() {
   setupCombo($('input-name'), productOptions);
   setupCombo($('input-place'), placeOptions);
   setupCombo($('archive-place'), placeOptions);
+  setupCombo($('receipt-place'), placeOptions);
 
   document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
   $('btn-add').addEventListener('click', () => openAddSheet());
@@ -1176,7 +1212,8 @@ function init() {
   $('receipt-save').addEventListener('click', executeReceiptArchive);
   $('receipt-rows').addEventListener('change', e => {
     const i = e.target.dataset.i; if (i === undefined) return;
-    if (e.target.id.startsWith('r-match-')) syncReceiptRow(Number(i), true);
+    if (e.target.id.startsWith('r-match-')) { closeAllCombos(); syncReceiptRow(Number(i), true); }
+    else if (e.target.id.startsWith('r-name-')) syncReceiptRow(Number(i), true);
     else if (e.target.id.startsWith('r-unit-')) syncReceiptRow(Number(i), true, e.target.value);
   });
   $('receipt-rows').addEventListener('input', e => {
